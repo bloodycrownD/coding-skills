@@ -56,7 +56,7 @@ disable-model-invocation: true
 
 ## 动态 DAG
 
-通用编排纪律（wave、同步等待、改图动作、`dag_version`、状态落盘、震荡处置、禁止事项）见《coding-rules》reference·动态DAG派遣；本节只列 code-dev-loop 特有内容。每轮 wave 结束或 **not-ready** 后，主代理 **改图** 并 `dag_version++`。
+通用编排纪律（wave、同步等待、改图动作、`dag_version`、状态落盘、震荡处置、禁止事项）见《coding-rules》reference·通用代理·动态 DAG 编排纪律；本节只列 code-dev-loop 特有内容。每轮 wave 结束或 **not-ready** 后，主代理 **改图** 并 `dag_version++`。
 
 | 动作 | 何时 |
 |------|------|

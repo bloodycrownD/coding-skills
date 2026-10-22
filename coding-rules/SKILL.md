@@ -34,8 +34,7 @@ apm-recall / apm-record：记忆读写
 
 | 文件 | 内容 | 谁在读 |
 |---|---|---|
-| `reference/通用代理.md` | 探索 agent／开发 agent／CR agent 定义：派遣规范、报告结构、prompt 基础模板、通用纪律（同步等待、失败政策、反锚定、授权档位、轻量直改、证据包） | 所有工作流 skill 派子代理时 |
-| `reference/动态DAG派遣.md` | 动态 DAG 编排通用纪律：wave／同步等待／改图动作／dag_version／状态落盘／震荡处置 | code-dev-loop、code-review-loop、spec-check-loop 三个 loop |
+| `reference/通用代理.md` | 探索 agent／开发 agent／CR agent 定义：派遣规范、报告结构、prompt 基础模板；通用纪律（同步等待、失败政策、反锚定、授权档位、轻量直改、证据包）；**动态 DAG 编排纪律**（wave／改图／dag_version／落盘／震荡，loop 类共用） | 所有工作流 skill 派子代理时；三个 loop 编排时 |
 | `reference/AGENTS.md` | 通用代理行为约定（原根 AGENTS.md 全文）：人格语气、中文表达、术语规范、子代理派遣原则、记忆记录 | 需要统一行为口径时；人格部分按需取用 |
 
 ## 三、层间关系

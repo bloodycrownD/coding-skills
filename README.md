@@ -19,11 +19,10 @@
 
 | 关注点 | 权威文件 | 其他技能的动作 |
 |---|---|---|
-| 通用代理定义（探索/开发/CR：派遣规范、报告结构、基础模板、语言要求块） | coding-rules/reference·通用代理 | 引用，禁止复制条款 |
+| 通用代理定义（探索/开发/CR：派遣规范、报告结构、基础模板、语言要求块）＋动态 DAG 编排纪律（wave／改图／dag_version／落盘／震荡） | coding-rules/reference·通用代理 | 引用，禁止复制条款 |
 | 授权档位、轻量直改判据、证据包、失败政策、反锚定 | coding-rules/reference·通用代理 | 引用 |
-| 动态 DAG 编排纪律（wave／同步等待／改图／dag_version／状态落盘／震荡） | coding-rules/reference·动态DAG派遣 | 三个 loop 引用；各自只留特有动作表 |
 | 通用代理行为与人格（原根 AGENTS.md） | coding-rules/reference·AGENTS.md | 按需取用 |
-| skill 专属派单模板与变体 | 各 skill `reference/代理派单.md` | 派单时随用随取 |
+| skill 专属派单模板与变体 | agile-dev / code-dev-loop / code-review-loop / spec-check-loop 各自的 `reference/代理派单.md`（探索型 skill 直接用通用模板＋字段替换，无独立 reference） | 派单时随用随取 |
 | 记忆读写约定 | apm-record / apm-recall | 全族引用 |
 | 流水线编排、阶段豁免、自定义阶段 | auto-dev-loop | — |
 
