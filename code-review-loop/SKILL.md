@@ -56,10 +56,7 @@ disable-model-invocation: true
 
 ### 首诊与复审（反锚定）
 
-- **首诊**：对某问题域的**首轮**评审——不带既往 must-fix、不带主代理的预设与解读，让审查者以全新视角找问题。首轮 scope/full 天然是首诊。
-- **复审**：第 2 轮起——携带上轮 must-fix 做「已写入 / 仍缺 / 新问题」回归追踪；仍**不带**主代理对「为什么没修好」的解读，只带条目本身。
-
-**反锚定自检**（拼 review / evidence 派单时必做）：把 prompt 读一遍，凡「主代理认为 / 我怀疑 / 我倾向 / 疑似根因是」等预设措辞——**全删**。派单里只应剩下：任务、材料与路径、diff 范围、检查维度、上轮条目（复审时）。审查者顺着预设走，独立视角就没了。
+**首诊**＝对某问题域的首轮评审（不带先验）；**复审**＝第 2 轮起只带上轮条目做回归追踪、不带主代理解读。定义与反锚定自检的通用纪律见《coding-rules》reference·通用代理·首诊与复审。
 
 ### 编排收敛（C-orch）
 
@@ -96,15 +93,9 @@ review* **须 readonly**。波次内功能小检（func）属 **code-dev-loop**�
 
 ---
 
-## 子代理派遣规范
+## 子代理派遣
 
-| 节点 | 工具 | subagent_type | readonly | 说明 |
-|------|------|---------------|----------|------|
-| **review** / **review-scope** / **review-full** | Task | generalPurpose | **true** | 非自审 |
-| **evidence**（可选，大对象） | Task | generalPurpose | **true** | 按模块并行；**只取证不下结论** |
-
-- 同 wave 无冲突可并行；**同步等待** 当前 wave 全部返回后再汇总
-- **失败**：review / evidence 子代理重试一次；仍失败则主代理手工等效审查，标注「手工审查」
+节点派遣表（review / review-scope / review-full / evidence）与 scope / full / diff 三套模式 prompt 见本技能 `reference/代理派单.md`；通用 CR agent 纪律（readonly 非自审、同步等待、反锚定、失败政策、证据包）见《coding-rules》reference·通用代理。
 
 ### 大对象两段式评审（evidence → review）
 
@@ -117,12 +108,7 @@ diff 大、跨模块对照多时，多个 review-scope 各自重读全量代码�
 
 ### 证据包（evidence pack）
 
-跨轮次重复读的**稳定背景**落盘复用，**生产者写、消费者读**：
-
-- 生产者：第一个读该区域的子代理（evidence / 首轮 review）顺手落盘，路径写入 Context Bundle；主代理只持路径，**不亲自写包**——否则读代码的成本只是转移到了最贵的主代理上下文上
-- 路径：`docs/iterations/<name>/cache/<topic>.md`（过程产物，不入版本控制；用户另指定则从其指定）
-- 失效：包头记 `head_sha` / 生成节点 / 范围；后续节点发现 sha 不一致 → 视为 stale，仅作线索，事实须新鲜读
-- 边界：只放稳定背景（模块地图、调用链、约定、既往 findings、diff 统计）；**被审的当前 diff 与代码必须新鲜读**
+生产者写、消费者读；路径、失效判定与边界见《coding-rules》reference·通用代理·证据包。本 skill 约束：**被审的当前 diff 与代码必须新鲜读**；裁决的 review 禁止仅凭证据包判 must-fix。
 
 ### spec-fix：主代理直接执行
 
@@ -397,75 +383,7 @@ must_fix: []
 
 ## Prompt 模板
 
-### scope
-
-```text
-【语言要求】全程中文
-
-readonly 评审。skill：code-review-loop。模式：scope
-仓库：<REPO_PATH>
-业务 Spec / PRD：<路径>
-fix-spec：<FIX_SPEC_PATH>（无则写「尚未创建」）
-BASE_SHA / HEAD_SHA：<sha>
-节点 id：<review-scope-x>
-检查维度：A + B + C + C-orch + G（本 scope）；不含 D/E/F/H–J/K
-C-orch：多文件协调必查；否则 N/A + 理由
-Context Bundle：<YAML>
-
-请用中文返回：
-1）相对上轮：已写入 fix-spec / 仍缺 / 新问题（第 2 轮起）
-2）must-fix（id, P0|P1|P2, 文件, 描述, 维度, 改法）— 供写入 fix-spec
-3）open_questions — 未认定；不得混入 must-fix
-4）spec_deviations
-5）fix-spec 可执行性（若已有）：缺口 / 歧义 / 缺验收
-6）结论：scope-ready: yes|no（禁止输出 fix-spec-ready）
-```
-
-### full
-
-```text
-【语言要求】全程中文
-
-readonly 评审。skill：code-review-loop。模式：full
-仓库：<REPO_PATH>
-业务 Spec / PRD：<路径>
-fix-spec：<FIX_SPEC_PATH>
-BASE_SHA / HEAD_SHA：<sha>
-节点 id：review-full
-检查维度：B–K 全维（含 C-orch）；A/G 按 diff/范围全查或说明抽检依据
-Context Bundle：<YAML>
-
-请用中文返回：
-1）相对上轮：已写入 / 仍缺 / 新问题
-2）must-fix（含改法，供 fix-spec）
-3）open_questions
-4）spec_deviations
-5）fix-spec 覆盖度与可执行性（每条是否有文件+改法+验收）
-6）未涉及维度：H/I/J=未涉及（适用则查）
-7）结论：建议 fix-spec-ready: yes|no + 理由（由主代理最终判定）
-```
-
-### diff
-
-```text
-【语言要求】全程中文
-
-readonly 评审。skill：code-review-loop。模式：diff（独立 PR，偏单轮）
-仓库：<REPO_PATH>
-业务 Spec / PRD：<路径或「未提供」>
-Diff：BASE/HEAD 或 PR #<n>；文件：<FILES>
-检查：B–K（含 C-orch）；A 对照 PRD/spec（若有）与 diff 变更点
-K 节：只给出应写入 fix-spec 的收尾步骤，不跑 lint
-
-请用中文返回：
-1）diff 摘要
-2）must-fix（含改法）
-3）open_questions / spec_deviations
-4）结论：**通过** | **需产出 fix-spec** | **阻塞**
-   - 通过：P0=P1=P2=0，无 open spec_deviations
-   - 需产出 fix-spec：存在 must-fix（含 P2）
-   - 阻塞：未闭合 P0，或 open spec_deviations，或调查未完成
-```
+scope / full / diff 三套模式的派遣 prompt 见本技能 `reference/代理派单.md`（含各模式检查维度与返回结构；拼单时反锚定自检照《coding-rules》reference·通用代理）。
 
 **diff 收尾**（主代理）：需产出 / 阻塞且用户未叫停 → 主代理直接落盘 fix-spec；通过则 Closure 注明无修复项。
 

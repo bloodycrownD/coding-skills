@@ -42,38 +42,21 @@ disable-model-invocation: true
 
 ---
 
-## 子代理派遣规范
+## 子代理派遣
 
-| 节点 | 工具 | subagent_type | readonly | 并行 |
-|------|------|---------------|----------|------|
-| **impl** | Task | generalPurpose | false | 无同文件冲突可同 wave |
-| **fix** | Task | generalPurpose | false | 不同文件可同 wave |
-| **verify** | Task | generalPurpose 或 shell | false | 可同 wave |
-| **cr-func** | Task | generalPurpose | **true** | 可同 wave |
+节点派遣表（impl/fix/verify/cr-func 的工具、readonly、并行）与 cr-func、impl/fix/verify 两套 prompt 模板见本技能 `reference/代理派单.md`；通用派遣纪律（同步等待、失败政策、授权档位、轻量直改判据、证据包）见《coding-rules》reference·通用代理。
 
-- **同步等待** 当前 wave 全部返回后再汇总
-- **失败**：重试一次 → 仍失败则 not-ready，主代理改 DAG 或标注 blocked
-- **同文件禁止** 并行 impl/fix
+要点：**同步等待**当前 wave 全部返回；**同文件禁止并行 impl/fix**；失败重试一次 → not-ready 改图或 blocked。
 
 ### 轻量直改（主代理直接执行）
 
-派遣子代理的核心价值是**上下文隔离**和**并行**。节点小而明确时两个价值都不沾，没必要付子代理往返的固定开销，主代理直接干掉。未标 executor 则默认 `executor: subagent`。
-
-**适用节点**：impl、fix、verify。
-
-**快路径**（命中即直改，不必细想）：改动集中在 **1–2 个文件**、位置已知（探索或 spec 已指明，无需再读一堆文件搞清现状）、验证输出短（单测 pass/fail 一行就够，而非完整构建日志）。
-
-**主判据**是 **主代理直接执行不会消耗大量上下文**——快路径只是它的粗代理，拿不准时回到主判据衡量。特别注意**试错预期**：测试可能反复红、要边跑边改多轮的节点，即使文件少也应派遣，因为上下文膨胀发生在试错环节，不在编辑环节。
-
-满足时在 `node_status` 标 `executor: main`，验证与证据留痕照常——省的是子代理往返，不是省质量。
-
-**不适用**：cr-func（审查独立性须保留，且审查天生要读多个文件对照）。
+判据与快路径见《coding-rules》reference·通用代理（快路径：1–2 文件、位置已知、验证输出短；试错预期高则仍派遣）。**适用节点**：impl、fix、verify；满足时在 `node_status` 标 `executor: main`，验证与证据留痕照常——省的是子代理往返，不是省质量。**不适用**：cr-func（审查独立性须保留，且审查天生要读多个文件对照）。未标 executor 则默认 `executor: subagent`。
 
 ---
 
 ## 动态 DAG
 
-每轮 wave 结束或 **not-ready** 后，主代理 **改图** 并 `dag_version++`。
+通用编排纪律（wave、同步等待、改图动作、`dag_version`、状态落盘、震荡处置、禁止事项）见《coding-rules》reference·动态DAG派遣；本节只列 code-dev-loop 特有内容。每轮 wave 结束或 **not-ready** 后，主代理 **改图** 并 `dag_version++`。
 
 | 动作 | 何时 |
 |------|------|
@@ -162,12 +145,7 @@ node_status: { ... }
 
 ### 证据包（evidence pack）
 
-跨波次重复读的**稳定背景**（模块地图、调用链、约定、既往 findings、diff 统计）落盘复用，**生产者写、消费者读**：
-
-- 生产者：第一个读该区域的子代理（上游探索 / 首轮 review / 首个 impl）顺手落盘，路径写入 Bundle 的 `evidence_packs`；主代理只持路径，**不亲自写包**——否则读代码的成本只是转移到了最贵的主代理上下文上
-- 路径：`docs/iterations/<name>/cache/<topic>.md`（过程产物，不入版本控制；用户另指定则从其指定）
-- 失效：包头记 `head_sha` / 生成节点 / 范围；后续节点发现 sha 不一致 → 视为 stale，仅作线索，事实须新鲜读
-- 边界：只放稳定背景；**spec 与被改代码必须新鲜读**，不得以包替代
+生产者写、消费者读；路径（`docs/iterations/<name>/cache/<topic>.md`）、失效判定与边界见《coding-rules》reference·通用代理·证据包。本 skill 约束：**spec 与被改代码必须新鲜读**，不得以包替代；主代理只持路径，不亲自写包。
 
 ---
 
@@ -218,50 +196,9 @@ node_status: { ... }
 2. **同步等待**
 3. 任一 fail / cr-func not func-ready → **not-ready**
 
-### cr-func prompt
+### prompt 模板
 
-```text
-【语言要求】全程中文
-
-readonly 功能小检。节点：<node_id>
-仓库：<REPO_PATH>
-Spec：<SPEC_PATH>
-PRD：<PRD_PATH>
-本波次范围文件：<FILES>
-verify 摘要：<VERIFY_SUMMARY>
-Context Bundle：<YAML>
-
-检查：A（本波次步骤矩阵+blocking 测试 id）、G（verify 证据）、spec_deviations
-
-返回：1）矩阵对照 2）must-fix 3）spec_deviations 4）func-ready: yes|no + 理由
-```
-
-### impl / fix / verify prompt 模板
-
-```text
-【语言要求】
-- 全程使用中文：任务说明、过程、结论、返回报告
-- 代码注释与公开 API 文档注释须中文；commit message 中文
-- 标识符、协议字段、第三方 API 名保持英文
-
-节点：<node_id>，类型：<impl | fix | verify>
-仓库/worktree：<PATH>
-分支：<BRANCH>
-Spec / PRD：<路径>
-Context Bundle：
-<粘贴 full 或 delta YAML>
-
-任务：<本节点具体目标，含 spec 步骤 id>
-约束：
-- impl/fix：单次 inline 连续执行；按逻辑块提交；不 revert 无关改动
-- verify：运行与改动相关的测试/build；记录命令与结果
-
-请用中文按下列结构返回：
-1）已完成项与剩余缺口
-2）提交记录（sha + message，无则写「无提交」）
-3）验证命令及通过/失败
-4）阻塞项（如有）
-```
+cr-func 与 impl/fix/verify 的 prompt 模板见本技能 `reference/代理派单.md`——cr-func 检查 A/G/spec_deviations 并返回 func-ready 结论；impl/fix/verify 按 Context Bundle（full/delta）执行并按通用返回结构交卷。
 
 ---
 
