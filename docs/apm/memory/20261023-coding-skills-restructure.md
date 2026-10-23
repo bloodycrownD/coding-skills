@@ -16,3 +16,9 @@ user:
 
 assistant:
 三点全落地。一、7 份 reference 砍成 4 份：brain-storm/prd-generate/spec-generate 三个探索型 skill 的变体与通用探索 agent 重合约八成（只差两三个字段和一张维度表），独立成文件是形式主义——删掉各自 reference/，SKILL.md 内改为「通用探索 agent＋字段替换」写法（目的行、任务字段、报告变体、维度表内联）；agile-dev/code-dev-loop/code-review-loop/spec-check-loop 四份保留（有真专属 prompt 集）。二、动态DAG派遣.md（仅 60 行、受众同为派单者）并入通用代理.md 成「§五 动态 DAG 编排纪律」，coding-rules/reference 收敛为两件套（通用代理.md＋AGENTS.md），全家引用同步改口径，grep 零残留。三、useful-skills 删除：当时失败是编辑器占着句柄，重试一次即删掉；旧副本清零，仓库唯一真身在 coding-skills。四、根 AGENTS.md 删除（1ba825e）：原留指针是我保守，用户裁定不要——agent.md 统一管理的语义就是内容只在 coding-rules/reference/AGENTS.md 一处，根层再留指针反而名不副实；前文「根 AGENTS.md 改为仓库指针」作废。教训：用户消息可能是执行指令而非提问，「这个删除命令你没看到吗」应先理解为「我下过删除指令」，而不是去文件里找命令——语义歧义时先确认意图再行动。
+
+user:
+auto-dev-loop 这个全自动开发 skill 非常拉胯，无法使用，删掉。
+
+assistant:
+已删（仓库目录+部署副本+族地图/路由/README 引用，提交推送）。用户实测判定不可用，未给具体失败原因；「编排层 skill 调度同族其他 skill」这条路在当前运行环境跑不通，后续如再想做全流程自动化，须先弄清失败模式（子 skill 无法被 skill 内调用？上下文耗尽？）再设计，勿直接重建同构方案。

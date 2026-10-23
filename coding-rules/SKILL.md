@@ -13,7 +13,6 @@ coding 技能族的**目录页与公共书架**：族内 skill 管工作流（pr
 brain-storm（答疑/摸底）
 prd-generate → spec-generate → spec-check-loop → code-dev-loop → code-review-loop
                                                       ↑______________|（fix-spec 回流）
-auto-dev-loop：以上全流程的自动编排（支持阶段豁免与自定义阶段）
 apm-recall / apm-record：记忆读写
 ```
 
@@ -25,7 +24,6 @@ apm-recall / apm-record：记忆读写
 | 「审一下这份 PRD/SPEC」「文档能不能开工」 | spec-check-loop |
 | 「按 spec 开发」「实现这个迭代」 | code-dev-loop |
 | 「评审代码」「CR」「产出修复 spec」 | code-review-loop |
-| 「全自动从需求跑到交付」「用现成的 spec 直接跑完整流程」 | auto-dev-loop |
 | 要派子代理（探索/实现/评审） | 代理定义与纪律见本技能 reference |
 
 ## 二、公共参考（reference/）
